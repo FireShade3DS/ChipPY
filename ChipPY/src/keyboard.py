@@ -1,5 +1,4 @@
 import pygame
-from collections import deque
 
 class Keyboard:
     def __init__(self) -> None:
@@ -23,14 +22,12 @@ class Keyboard:
         }
         self.keys = [0] * 16  # State of each Chip-8 key (pressed or not)
         self.last_key = None  # Last key pressed
-        self.input_queue = deque()  # Queue to store keypresses
 
     def key_down(self, key) -> None:
         if key in self.input_dir:
             key_index = self.input_dir[key]
             self.keys[key_index] = 1
             self.last_key = key_index
-            self.input_queue.append(key_index)  # Add the key to the input queue
             print(f"Key Down: {key} -> {key_index}")  # Debugging
 
     def key_up(self, key) -> None:
@@ -40,15 +37,18 @@ class Keyboard:
             print(f"Key Up: {key} -> {key_index}")  # Debugging
 
     def is_key_pressed(self, key_index) -> bool:
-        print(f"Checking if key {key_index} is pressed: {self.keys[key_index]}")  # Debugging
         return self.keys[key_index] == 1
 
     def wait_for_keypress(self) -> int:
-        while not self.input_queue:  # Wait until the queue has a key
-            pygame.event.pump()  # Process Pygame events
-        return self.input_queue.popleft()  # Return the next key in the queue
+        print("Waiting for keypress...")  # Debugging
+        while True:
+            for event in pygame.event.get():
+                if event.type == pygame.KEYDOWN:
+                    if event.key in self.input_dir:
+                        key_index = self.input_dir[event.key]
+                        print(f"Key Pressed: {key_index}")  # Debugging
+                        return key_index
 
     def reset(self) -> None:
         self.keys = [0] * 16
         self.last_key = None
-        self.input_queue.clear()  # Clear the input queue

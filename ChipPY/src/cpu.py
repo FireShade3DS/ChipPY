@@ -92,10 +92,13 @@ class CPU:
                         self.V[x] = self.V[y]
                     case 0x1:  # OR Vx, Vy
                         self.V[x] |= self.V[y]
+                        self.V[0xF] = 0  # Reset VF
                     case 0x2:  # AND Vx, Vy
                         self.V[x] &= self.V[y]
+                        self.V[0xF] = 0  # Reset VF
                     case 0x3:  # XOR Vx, Vy
                         self.V[x] ^= self.V[y]
+                        self.V[0xF] = 0  # Reset VF
                     case 0x4:  # ADD Vx, Vy
                         result = self.V[x] + self.V[y]  # Calculate the result first
                         self.V[x] = result & 0xFF  # Update Vx with the lower 8 bits of the result
@@ -137,8 +140,8 @@ class CPU:
                 x = self.V[(opcode & 0x0F00) >> 8]
                 y = self.V[(opcode & 0x00F0) >> 4]
                 nibble = opcode & 0x000F
-                sprite = self.memory[self.I:self.I + nibble]  # Extract sprite data from memory
-                self.V[0xF] = 1 if self.display.draw_sprite(x, y, sprite) else 0
+                sprite = self.memory[self.I:self.I + nibble]
+                self.V[0xF] = 1 if self.display.draw_sprite(x, y, sprite) else 0  # Set VF based on collision
                 self.draw_flag = True
             case 0xE000:  # Key opcodes
                 x = (opcode & 0x0F00) >> 8
@@ -175,9 +178,12 @@ class CPU:
                     case 0x55:  # LD [I], Vx
                         for i in range(x + 1):
                             self.memory[self.I + i] = self.V[i]
+                        self.I += x + 1  # Increment I after saving
+
                     case 0x65:  # LD Vx, [I]
                         for i in range(x + 1):
                             self.V[i] = self.memory[self.I + i]
+                        self.I += x + 1  # Increment I after loading
                     case _:
                         pass  # Ignore other 0xFX__ opcodes
             case _:

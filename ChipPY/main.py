@@ -23,28 +23,28 @@ class ChipPY:
         self.cpu.load_rom(self.rom)
     def run(self) -> None:
         clock = pygame.time.Clock()  # Pygame clock for precise timing
-        cpu_speed = 500  # Target CPU speed in instructions per second
+        cpu_speed = 700  # Target CPU speed in instructions per second
+        cycles_per_frame = cpu_speed // 60  # Number of CPU cycles per frame
+
         while self.running:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     self.running = False
                 elif event.type == pygame.KEYDOWN:
-                    print(f"Key Down Event: {event.key}")  # Debugging
                     self.keyboard.key_down(event.key)
                 elif event.type == pygame.KEYUP:
-                    print(f"Key Up Event: {event.key}")  # Debugging
                     self.keyboard.key_up(event.key)
 
-            # Run enough CPU cycles to match the target speed
-            for _ in range(cpu_speed // 60):  # Run multiple cycles per frame
+            # Run the required number of CPU cycles per frame
+            for _ in range(cycles_per_frame):
                 self.cpu.cycle()
 
-            # Update the display at 60 FPS
+            # Update the display at 60 FPS if the draw flag is set
             if self.cpu.draw_flag:
                 self.display.update_screen()
-                self.cpu.draw_flag = False
+                self.cpu.draw_flag = False  # Reset the draw flag
 
-            clock.tick(60)  # Limit the loop to 60 iterations per second
+            clock.tick(60)  # Limit the loop to 60 frames per second
 
         pygame.quit()
         sys.exit()
